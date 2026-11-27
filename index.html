@@ -10,17 +10,131 @@
 <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "ひきだしメニュー", "operatingSystem": "macOS", "applicationCategory": "UtilitiesApplication", "description": "デスクトップをダブルクリックすると、カーソルの位置によく使うアプリのメニューが開くランチャー。", "url": "https://emchs07-prog.github.io/hikidashimenu-support/", "author": {"@type": "Person", "name": "Hideki Sato", "url": "https://emchs07-prog.github.io/"}}</script>
 <!-- 検索向けの設定（ここまで） -->
 <style>
-  :root { color-scheme: light dark; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
-    max-width: 720px; margin: 0 auto; padding: 2rem 1.5rem; line-height: 1.8;
+  :root {
+    color-scheme: light dark;
+    --bg:#ffffff; --bg2:#f5f7fb; --card:#ffffff; --text:#14171f; --mute:#5b6475; --line:#e3e7ef;
+    --accent:#3a5fd9; --accent2:#7b5cf0; --code:#0b0d12; --codetext:#e8ecf3; --shadow:0 10px 30px rgba(20,30,60,.08);
   }
-  h1 { border-bottom: 3px solid #3B6FF0; padding-bottom: .4rem; }
-  h2 { margin-top: 2.5rem; color: #3B6FF0; }
-  footer { margin-top: 4rem; font-size: .85rem; opacity: .7; }
-  a { color: #2F6BFF; }
-  dt { font-weight: bold; margin-top: 1rem; }
-  @media (prefers-color-scheme: dark) { h2, a { color: #7FA2FF; } h1 { border-color: #7FA2FF; } }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0b0d12; --bg2:#11151d; --card:#151a23; --text:#e9edf5; --mute:#9aa4b6; --line:#232a36;
+            --accent:#7d9bff; --accent2:#ad8dff; --shadow:0 10px 30px rgba(0,0,0,.35); }
+  }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; scroll-padding-top:72px; }
+  body { margin:0; background:var(--bg); color:var(--text); line-height:1.8;
+         font-family:-apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+         -webkit-font-smoothing:antialiased; }
+  a { color:var(--accent); }
+  img { max-width:100%; height:auto; }
+  .wrap { max-width:1040px; margin:0 auto; padding:0 24px; }
+  /* 上の帯 */
+  .top { position:sticky; top:0; z-index:10; backdrop-filter:saturate(180%) blur(14px); -webkit-backdrop-filter:saturate(180%) blur(14px);
+         background:color-mix(in srgb, var(--bg) 82%, transparent); border-bottom:1px solid var(--line); }
+  .top .wrap { display:flex; align-items:center; gap:16px; height:56px; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:700; text-decoration:none; color:var(--text); white-space:nowrap; }
+  .brand img { width:28px; height:28px; border-radius:7px; }
+  .top nav { margin-left:auto; display:flex; gap:4px; overflow-x:auto; scrollbar-width:none; }
+  .top nav a { color:var(--mute); text-decoration:none; font-size:.88rem; padding:6px 10px; border-radius:8px; white-space:nowrap; }
+  .top nav a:hover { color:var(--text); background:var(--bg2); }
+  /* 先頭 */
+  .hero { position:relative; overflow:hidden; text-align:center; padding:72px 0 40px; }
+  .hero::before { content:""; position:absolute; inset:-30% -10% auto; height:120%; z-index:-1; filter:blur(20px);
+    background:radial-gradient(40% 45% at 30% 35%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+               radial-gradient(35% 40% at 72% 30%, color-mix(in srgb, var(--accent2) 18%, transparent), transparent 70%); }
+  .hero .icon { width:112px; height:112px; border-radius:25px; box-shadow:var(--shadow); }
+  .hero h1 { font-size:clamp(2.4rem, 6vw, 3.6rem); line-height:1.15; margin:20px 0 4px; letter-spacing:-.01em; font-weight:800; }
+  .hero .yomi { color:var(--mute); font-size:.9rem; margin:0; }
+  .hero .sub { font-size:clamp(1.15rem, 2.6vw, 1.5rem); font-weight:700; margin:14px 0 10px;
+    background:linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .hero .lead { max-width:36em; margin:0 auto; color:var(--mute); }
+  .chips { display:flex; justify-content:center; flex-wrap:wrap; gap:8px; margin:20px 0 0; padding:0; list-style:none; }
+  .chips li { font-size:.82rem; font-weight:600; color:var(--mute); border:1px solid var(--line); background:var(--card); border-radius:999px; padding:3px 12px; }
+  .btns { display:flex; justify-content:center; flex-wrap:wrap; gap:12px; margin:28px 0 0; }
+  .btn { display:inline-flex; align-items:center; gap:8px; font-weight:700; text-decoration:none; border-radius:12px; padding:12px 22px; }
+  .btn.primary { background:var(--text); color:var(--bg); }
+  .btn.ghost { border:1px solid var(--line); color:var(--text); background:var(--card); }
+  .btn:hover { opacity:.88; }
+  .shot-hero { margin:48px auto 0; max-width:960px; }
+  .shot-hero img, .gallery img { display:block; width:100%; border-radius:12px; border:1px solid var(--line); box-shadow:var(--shadow); }
+  .note { max-width:44em; margin:28px auto 0; font-size:.88rem; color:var(--mute); text-align:center; }
+  /* 節 */
+  section.block { padding:64px 0; }
+  section.block.alt { background:var(--bg2); }
+  .eyebrow { display:block; text-align:center; font-size:.78rem; font-weight:700; letter-spacing:.12em; color:var(--accent); margin:0 0 6px; }
+  h2 { text-align:center; font-size:clamp(1.5rem, 3.4vw, 2rem); line-height:1.35; margin:0 0 12px; }
+  .intro { text-align:center; color:var(--mute); max-width:38em; margin:0 auto 36px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px 22px 18px; }
+  .card .ic { display:inline-grid; place-items:center; width:40px; height:40px; border-radius:11px; font-size:1.2rem;
+              background:color-mix(in srgb, var(--accent) 14%, transparent); }
+  .card h3 { font-size:1.06rem; margin:12px 0 6px; line-height:1.5; }
+  .card p { margin:0; color:var(--mute); font-size:.94rem; }
+  .card .tag { display:inline-block; font-size:.72rem; font-weight:700; color:var(--accent2); margin-left:6px; vertical-align:2px; }
+  .codes { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; margin:28px 0 0; padding:0; list-style:none; }
+  .codes li { font-family:Menlo, ui-monospace, monospace; font-size:.85rem; background:var(--code); color:var(--codetext); border-radius:8px; padding:4px 12px; }
+  /* 画面 */
+  .gallery { display:grid; grid-auto-flow:column; grid-auto-columns:min(82%, 720px); gap:16px; overflow-x:auto; scroll-snap-type:x mandatory; padding:4px 4px 16px; }
+  .gallery figure { margin:0; scroll-snap-align:center; }
+  .gallery.phone { grid-auto-columns:min(56%, 240px); }
+  .gallery figcaption { font-size:.88rem; color:var(--mute); margin-top:10px; text-align:center; }
+  .gallery-label { font-weight:700; margin:32px 0 12px; }
+  /* 使い方 */
+  .how { display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px; }
+  .how .card h3 { margin-top:0; font-size:1.15rem; }
+  .how ol { margin:0; padding-left:1.3em; }
+  .how li { margin:0 0 8px; }
+  kbd { font-family:-apple-system, sans-serif; font-size:.82em; border:1px solid var(--line); border-bottom-width:2px; border-radius:6px; padding:0 6px; background:var(--bg2); }
+  .md-list { max-width:760px; margin:0 auto; padding-left:1.3em; }
+  .md-list li { margin:0 0 10px; }
+  .for { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; max-width:860px; margin:0 auto; padding:0; list-style:none; }
+  .for li { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px 16px; font-weight:600; }
+  .for li::before { content:"✓"; color:var(--accent); margin-right:8px; }
+  /* よくある質問 */
+  .faq { max-width:780px; margin:0 auto; }
+  .faq details { background:var(--card); border:1px solid var(--line); border-radius:14px; margin:0 0 10px; }
+  .faq summary { cursor:pointer; list-style:none; padding:16px 48px 16px 20px; font-weight:700; position:relative; }
+  .faq summary::-webkit-details-marker { display:none; }
+  .faq summary::after { content:"+"; position:absolute; right:20px; top:50%; transform:translateY(-50%); font-size:1.3rem; color:var(--mute); }
+  .faq details[open] summary::after { content:"−"; }
+  .faq .a { padding:0 20px 16px; color:var(--mute); }
+  .faq .a p { margin:0 0 8px; }
+  /* お問い合わせ */
+  .contact { max-width:640px; margin:0 auto; text-align:center; }
+  .contact .card { padding:28px; }
+  .contact p { margin:0 0 10px; }
+  .other-apps { max-width:780px; margin:0 auto !important; padding:56px 24px 0; }
+  .other-apps h2 { margin-bottom:4px; }
+  .other-apps > p { text-align:center; }
+  .other-apps ul { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:4px 20px; }
+  .other-apps li { line-height:1.5; }
+  footer { text-align:center; color:var(--mute); font-size:.85rem; padding:40px 24px 56px; margin-top:56px; border-top:1px solid var(--line); }
+  @media (max-width:640px) { .top nav { display:none; } .hero { padding-top:48px; } section.block { padding:48px 0; } }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior:auto; } }
+  .en { padding-top:24px; }
+  .en-sep { border:0; border-top:1px solid var(--line); margin:64px 0 0; }
+  .en .how { grid-template-columns:1fr; max-width:780px; margin:0 auto; }
+  .keys { display:grid; grid-template-columns:repeat(auto-fill, minmax(420px, 1fr)); gap:16px; align-items:start; }
+  .keys h3 { margin:0 0 10px; font-size:1.05rem; }
+  .keys table { width:100%; border-collapse:collapse; font-size:.92rem; }
+  .keys th { text-align:left; white-space:nowrap; padding:6px 14px 6px 0; vertical-align:top; font-weight:400; }
+  .keys td { padding:6px 0; color:var(--mute); border-bottom:1px solid var(--line); }
+  .keys tr:last-child td { border-bottom:0; }
+  .keys-note { text-align:center; color:var(--mute); font-size:.9rem; margin:20px auto 0; max-width:44em; }
+  @media (max-width:640px) { .keys { grid-template-columns:1fr; } }
+  .notecard { display:block; text-align:left; text-decoration:none; color:var(--text); transition:transform .15s ease; }
+  .notecard:hover { transform:translateY(-2px); }
+  .nc-site { display:inline-block; font-size:.75rem; font-weight:700; color:var(--bg); background:var(--text); border-radius:6px; padding:1px 8px; }
+  .nc-title { display:block; font-weight:700; font-size:1.1rem; line-height:1.5; margin:10px 0 6px; }
+  .nc-lead { display:block; color:var(--mute); font-size:.92rem; }
+  .nc-go { display:block; color:var(--accent); font-weight:700; margin-top:10px; }
+  .btn.soon { background:var(--bg2); color:var(--mute); border:1px dashed var(--line); cursor:default; }
+  .pro { max-width:860px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px; }
+  .pro .card h3 { margin-top:0; }
+  .pro ul { margin:0; padding-left:1.2em; } .pro li { margin:0 0 8px; }
+  .pro .price { display:inline-block; font-size:.75rem; font-weight:700; border-radius:999px; padding:1px 10px; margin-left:8px; vertical-align:3px; }
+  .pro .free .price { background:var(--bg2); color:var(--mute); border:1px solid var(--line); }
+  .pro .paid { border-color:color-mix(in srgb, var(--accent) 45%, var(--line)); }
+  .pro .paid .price { background:var(--accent); color:#fff; }
 </style>
 <!-- リンクを貼ったときに出る紹介カード（OGP） -->
 <meta property="og:type" content="website">
@@ -33,47 +147,116 @@
 <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
-<h1>ひきだしメニュー</h1>
-<p class="og-card"><img src="og.png" alt="ひきだしメニューの紹介" width="1200" height="630" style="display:block;width:100%;max-width:720px;height:auto;border-radius:12px;margin:12px 0 24px;"></p>
-<p>ひきだしメニューは、よく使うアプリ・書類・フォルダ・Web ページを、マウスのカーソルの位置に開くメニューからすぐに起動できる Mac 用のランチャーです。分類（サブメニュー）で整理でき、登録したフォルダは中のファイルや子フォルダをメニューでたどって開けます。</p>
+<header class="top"><div class="wrap">
+  <a class="brand" href="#"><img src="img/icon.png" alt="" width="28" height="28">ひきだしメニュー</a>
+  <nav aria-label="ページ内の移動"><a href="#features">特長</a><a href="#screens">画面</a><a href="#start">はじめに</a><a href="#pro">プロ版</a><a href="#faq">よくある質問</a><a href="#contact">お問い合わせ</a></nav>
+</div></header>
 
-<h2>はじめに</h2>
-<ol>
-  <li>起動すると、画面右上のメニューバーにアイコンが表示されます。</li>
-  <li>メニューの一番下の「ランチャーを編集…」で編集画面を開き、「アプリを追加…」から登録したいアプリを選びます。Finder からアプリや書類をドラッグしても登録できます。</li>
-  <li>デスクトップの何もない所をダブルクリックすると、その場所にメニューが開きます。キーボードの option＋スペースや、メニューバーのアイコンからも開けます。</li>
-</ol>
-<p>開き方は編集画面の「ランチャーの開き方」で変えられます。</p>
+<main>
+<section class="hero"><div class="wrap">
+  <img class="icon" src="img/icon.png" alt="ひきだしメニューのアイコン" width="112" height="112">
+  <h1>ひきだしメニュー</h1>
+  <p class="sub">デスクトップをダブルクリック。その場に、いつものアプリ。</p>
+  <p class="lead">マウスのカーソルの位置に、よく使うアプリ・書類・フォルダのメニューが開く Mac 用のランチャーです。Dock やアプリの一覧を探しに行かなくても、手元でそのまま起動できます。</p>
+  <ul class="chips"><li>Mac</li><li>基本の機能は無料</li><li>プロ版は買い切り</li><li>データの収集なし</li></ul>
+  <div class="btns">
+    <span class="btn soon" aria-disabled="true">まもなく App Store で公開</span>
+    <a class="btn ghost" href="#start">はじめに</a>
+  </div>
+  <figure class="shot-hero" style="margin-left:auto;margin-right:auto;"><img src="img/mac-01.jpg" alt="デスクトップをダブルクリックして、カーソルの位置にアプリのメニューを開いたところ" width="1600" height="1000"></figure>
+</div></section>
 
-<h2>プロ版について</h2>
-<p>基本の機能は無料でお使いいただけます。プロ版（買い切り）を購入すると、次の機能が使えるようになります。</p>
-<ul>
-  <li>フォルダの中身をメニューでたどって開く（ダウンロード・書類など）</li>
-  <li>Web ページの登録（サイトのアイコン付き）</li>
-  <li>アプリの名前が変わる更新のあと、新しい版への差し替えを提案</li>
-  <li>今後追加する機能</li>
-</ul>
-<p>購入は編集画面の「プロ版」の欄から行えます。同じ Apple アカウントの Mac では、「購入を復元」でいつでもプロ版の機能を使えるようにできます。</p>
+<section class="block alt" id="features"><div class="wrap">
+  <span class="eyebrow">FEATURES</span>
+  <h2>手元で開いて、手元で起動</h2>
+  <p class="intro">よく使うものを、ひとつのメニューにしまっておく。必要なときに、カーソルのある場所で引き出す。そんな使い方のためのアプリです。</p>
+  <div class="grid">
+    <div class="card"><span class="ic" aria-hidden="true">🖱️</span><h3>カーソルの位置に開く</h3><p>デスクトップの何もない所をダブルクリックすると、その場所にメニューが開きます。画面の端まで手を動かさずに済みます。</p></div>
+    <div class="card"><span class="ic" aria-hidden="true">⌨️</span><h3>開き方は3通り</h3><p>デスクトップでダブルクリック（ホイールボタンの押し込みにも切り替え可）、キーボードの option＋スペース（ほかの組み合わせも選べます）、メニューバーのアイコン。</p></div>
+    <div class="card"><span class="ic" aria-hidden="true">➕</span><h3>登録は選ぶだけ</h3><p>「アプリを追加…」で、Mac に入っているアプリを一覧から選ぶだけ。フォルダに入ったアプリも出ます。Finder からアプリや書類をドラッグしても登録できます。</p></div>
+    <div class="card"><span class="ic" aria-hidden="true">🗂️</span><h3>分類で整理</h3><p>分類（サブメニュー）と区切り線で整理でき、並べ替えもドラッグで。名前はダブルクリックで好きなものに変えられます。</p></div>
+    <div class="card"><span class="ic" aria-hidden="true">📂</span><h3>フォルダの奥までたどれる<span class="tag">プロ版</span></h3><p>ダウンロードや書類などのフォルダを登録すると、中のファイルや子フォルダをメニューで順にたどって、そのまま開けます。</p></div>
+    <div class="card"><span class="ic" aria-hidden="true">🌐</span><h3>Web ページもまとめて<span class="tag">プロ版</span></h3><p>よく見るページをメニューに登録できます。サイトのアイコンも表示されます。</p></div>
+  </div>
+</div></section>
 
-<h2>よくある質問</h2>
-<dl>
-  <dt>Q. デスクトップをダブルクリックしてもメニューが開きません</dt>
-  <dd>A. ウインドウの無い場所（壁紙が見えている所）でダブルクリックしてください。Dock やメニューバーの上では開きません。また、デスクトップに置いた書類やフォルダのアイコンをダブルクリックしたときは、その書類が開くだけでメニューは出ません。</dd>
-  <dt>Q. デスクトップをクリックすると、ウインドウが画面の端に下がってしまいます</dt>
-  <dd>A. macOS のステージマネージャの動きです。ステージマネージャがオンのあいだは、壁紙をクリックするとウインドウが出入りします。気になる場合は、編集画面の「ステージマネージャの設定を開く…」からシステム設定を開き、オフにしてください。キーボードの option＋スペースで開く方法もあります。</dd>
-  <dt>Q. メニューの項目に「？」の印が付き、「見つかりません」と表示されます</dt>
-  <dd>A. 登録したアプリや書類が、移動または削除された状態です。アプリの更新で名前が変わった場合（例：「〇〇 2026」から「〇〇 2027」）、プロ版では新しい版を探して差し替えを提案します。編集画面で項目を削除し、登録し直すこともできます。</dd>
-  <dt>Q. Mac にログインしたときに自動で起動できますか？</dt>
-  <dd>A. 編集画面の「Mac にログインしたら自動で起動する」にチェックを付けてください。</dd>
-  <dt>Q. 別の Mac でもプロ版を使えますか？</dt>
-  <dd>A. 同じ Apple アカウントでサインインしている Mac なら、編集画面の「購入を復元」を押すとプロ版の機能が使えるようになります。追加の支払いはありません。</dd>
-</dl>
+<section class="block" id="screens"><div class="wrap">
+  <span class="eyebrow">SCREENS</span>
+  <h2>画面</h2>
+  <p class="intro">横にすべらせると、ほかの画面も見られます。</p>
+  <div class="gallery">
+    <figure><img src="img/mac-01.jpg" alt="" width="1600" height="1000" loading="lazy"><figcaption>デスクトップをダブルクリックすると、その場にメニュー</figcaption></figure>
+    <figure><img src="img/mac-02.jpg" alt="" width="1600" height="1000" loading="lazy"><figcaption>フォルダの中までメニューでたどれる（プロ版）</figcaption></figure>
+    <figure><img src="img/mac-03.jpg" alt="" width="1600" height="1000" loading="lazy"><figcaption>編集画面。アプリは一覧から選んで追加</figcaption></figure>
+  </div>
+</div></section>
 
-<h2>お問い合わせ</h2>
-<p>不具合のご報告・ご要望は、以下のメールアドレスまでお気軽にご連絡ください。</p>
-<p><a href="mailto:emc.hs07@gmail.com">emc.hs07@gmail.com</a></p>
+<section class="block alt" id="start"><div class="wrap">
+  <span class="eyebrow">GETTING STARTED</span>
+  <h2>はじめに</h2>
+  <p class="intro">最初は何も登録されていない、空のメニューから始まります。</p>
+  <div class="how">
+    <div class="card"><h3>1. 登録する</h3><ol>
+      <li>起動すると、画面右上のメニューバーにアイコンが出ます。</li>
+      <li>アイコンを押し、メニューの一番下の「ランチャーを編集…」で編集画面を開きます。</li>
+      <li>「アプリを追加…」から、登録したいアプリを選びます。Finder からアプリや書類をドラッグしても登録できます。</li>
+    </ol></div>
+    <div class="card"><h3>2. 開く</h3><ol>
+      <li>デスクトップの何もない所（壁紙が見えている所）をダブルクリックすると、その場所にメニューが開きます。</li>
+      <li>キーボードの option＋スペースや、メニューバーのアイコンからも開けます。</li>
+      <li>開き方は、編集画面の「ランチャーの開き方」で変えられます。</li>
+    </ol></div>
+  </div>
+</div></section>
 
-<p><a href="privacy.html">プライバシーポリシー</a></p>
+<section class="block" id="pro"><div class="wrap">
+  <span class="eyebrow">PRO</span>
+  <h2>無料版とプロ版</h2>
+  <p class="intro">基本の機能は無料で使えます。プロ版は一度買えば、そのあとずっと使えます。</p>
+  <div class="pro">
+    <div class="card free"><h3>無料<span class="price">基本</span></h3><ul>
+      <li>カーソルの位置にメニューを開く（3通りの開き方）</li>
+      <li>アプリ・書類・フォルダの登録</li>
+      <li>分類（サブメニュー）・区切り線・並べ替え・名前の変更</li>
+      <li>ログインしたら自動で起動</li>
+    </ul></div>
+    <div class="card paid"><h3>プロ版<span class="price">買い切り</span></h3><ul>
+      <li>フォルダの中身をメニューでたどって開く</li>
+      <li>Web ページの登録（サイトのアイコン付き）</li>
+<!-- 1.1 を公開したら、次の行のコメントを外す: <li>システム設定の画面の登録（プリンタとスキャナ、ディスプレイ、サウンドなど）</li> -->
+      <li>アプリの名前が変わる更新のあと、新しい版への差し替えを提案</li>
+      <li>今後追加する機能</li>
+    </ul><p style="color:var(--mute);font-size:.9rem;margin:10px 0 0;">購入は編集画面の「プロ版」の欄から。同じ Apple アカウントの Mac なら「購入を復元」でいつでも使えます。</p></div>
+  </div>
+</div></section>
+
+<section class="block alt" id="faq"><div class="wrap">
+  <span class="eyebrow">FAQ</span>
+  <h2>よくある質問</h2>
+  <div class="faq">
+    <details><summary>デスクトップをダブルクリックしても、メニューが開きません</summary><div class="a"><p>ウインドウの無い場所（壁紙が見えている所）でダブルクリックしてください。Dock やメニューバーの上では開きません。デスクトップに置いた書類やフォルダのアイコンをダブルクリックしたときは、その書類が開くだけで、メニューは出ません。</p></div></details>
+    <details><summary>デスクトップをクリックすると、ウインドウが画面の端に下がってしまいます</summary><div class="a"><p>macOS のステージマネージャの動きです。ステージマネージャがオンのあいだは、壁紙をクリックするとウインドウが出入りします。気になるときは、編集画面の「ステージマネージャの設定を開く…」からシステム設定を開き、オフにしてください。キーボードの option＋スペースで開く方法もあります。</p></div></details>
+    <details><summary>ダブルクリック以外の開き方に変えられますか？</summary><div class="a"><p>編集画面の「ランチャーの開き方」で変えられます。デスクトップでのダブルクリックのほか、マウスのホイールボタンの押し込み、キーボード（option＋スペース。ほかの組み合わせも選べます）、メニューバーのアイコンから開けます。</p></div></details>
+    <details><summary>メニューの項目に「？」の印が付き、「見つかりません」と出ます</summary><div class="a"><p>登録したアプリや書類が、移動または削除された状態です。アプリの更新で名前が変わった場合（例:「〇〇 2026」から「〇〇 2027」）、プロ版では新しい版を探して差し替えを提案します。編集画面で項目を削除して、登録し直すこともできます。</p></div></details>
+    <details><summary>Mac にログインしたときに、自動で起動できますか？</summary><div class="a"><p>編集画面の「Mac にログインしたら自動で起動する」にチェックを付けてください。</p></div></details>
+    <details><summary>アクセシビリティなどの許可は要りますか？</summary><div class="a"><p>要りません。デスクトップでのマウスの押し下げだけを見ていて、キー入力やほかのアプリの中身は見ません。登録したファイルやフォルダは、登録したものだけを開けるよう、Mac の保護の仕組み（サンドボックス）の中で扱います。</p></div></details>
+    <details><summary>通信はしますか？</summary><div class="a"><p>Web ページを登録したときだけ、そのサイトのアイコンを取りに行きます。ほかの通信はせず、データも集めません。</p></div></details>
+    <details><summary>別の Mac でもプロ版を使えますか？</summary><div class="a"><p>同じ Apple アカウントでサインインしている Mac なら、編集画面の「購入を復元」を押すとプロ版の機能が使えます。追加の支払いはありません。</p></div></details>
+  </div>
+</div></section>
+
+<!-- note の記事3（ひきだしメニューを作った話）を公開したら、ここに「作った話を読む」の節（id="note"。文字アトリエ・Futamado のページと同じ形）を入れる -->
+
+<section class="block" id="contact"><div class="wrap contact">
+  <span class="eyebrow">CONTACT</span>
+  <h2>お問い合わせ</h2>
+  <div class="card">
+    <p>不具合のご報告やご要望は、メールでお気軽にどうぞ。</p>
+    <p><a class="btn ghost" href="mailto:emc.hs07@gmail.com">emc.hs07@gmail.com</a></p>
+    <p style="font-size:.9rem;color:var(--mute);margin:14px 0 0;">ひきだしメニューはデータを集めません。くわしくは <a href="privacy.html">プライバシーポリシー</a> をご覧ください。</p>
+  </div>
+</div></section>
+</main>
 
 <!-- この作者のほかのアプリ（ここから） -->
 <section class="other-apps" style="margin-top:3rem;">
